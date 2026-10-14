@@ -1,0 +1,7 @@
+.git
+data
+web/node_modules
+backend/cmd/mdns-gateway/web/app
+backend/bin
+*.log
+.cache/

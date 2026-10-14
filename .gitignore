@@ -1,0 +1,7 @@
+data/
+bin/
+web/node_modules/
+backend/bin/
+backend/cmd/mdns-gateway/web/app/
+.DS_Store
+.cache/

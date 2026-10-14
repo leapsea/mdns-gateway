@@ -1,0 +1,9 @@
+{
+  "name": "mdns-gateway-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": { "build": "vue-tsc --noEmit && vite build", "dev": "vite --host 0.0.0.0" },
+  "dependencies": { "pinia": "^3.0.0", "qrcode": "^1.5.4", "vue": "^3.5.0" },
+  "devDependencies": { "@types/qrcode": "^1.5.5", "@vitejs/plugin-vue": "^6.0.0", "typescript": "^5.9.0", "vite": "^8.0.0", "vue-tsc": "^3.1.0" }
+}
