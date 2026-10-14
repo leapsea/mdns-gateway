@@ -7,14 +7,24 @@ if [ "${MDNS_GATEWAY_SKIP_BUILD:-0}" != 1 ]; then
 fi
 tag="${MDNS_GATEWAY_IMAGE_TAG:-mdns-gateway:local}"
 name="mdns-gateway-smoke-$$"
-data_dir="$(mktemp -d)"
-cleanup() { docker rm -f "$name" >/dev/null 2>&1 || true; rm -rf "$data_dir"; }
-trap cleanup EXIT INT TERM
+# 测试数据使用匿名卷，由 Docker 删除 root 所有的文件，避免宿主机权限冲突。
+cleanup() {
+  result=$?
+  trap - EXIT INT TERM
+  if ! docker rm -fv "$name" >/dev/null 2>&1; then
+    printf 'Failed to remove smoke container and its anonymous volume: %s\n' "$name" >&2
+    if [ "$result" -eq 0 ]; then result=1; fi
+  fi
+  exit "$result"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 set --
 if [ -n "${MDNS_GATEWAY_PLATFORM:-}" ]; then
   set -- --platform "$MDNS_GATEWAY_PLATFORM"
 fi
-docker run "$@" -d --name "$name" --network host -v "$data_dir:/data" "$tag" >/dev/null
+docker run "$@" -d --name "$name" --network host -v /data "$tag" >/dev/null
 attempt=0
 while [ "$attempt" -lt 20 ]; do
   if docker exec "$name" wget -q -O - http://127.0.0.1:8080/health; then break; fi
