@@ -1,5 +1,7 @@
 export interface Site { id: number; name: string; domain: string; targetHost: string; targetPort: number; listenPort: number; protocol: 'HTTP' | 'WEBSOCKET' | 'SSH'; enabled: boolean; configMode: 'GENERATED' | 'CUSTOM'; customConfig?: string }
 export interface Status { version: string; database: string; mdns: string; openrestyActive: string; openrestyRuntime: string; openrestyApply: string; desiredVersion: number; activeRelease: string; configPending: boolean }
+/** 账户信息只由已鉴权的 /auth/me 返回，公开浏览不加载它。 */
+export interface Account { session: { userId: number; username: string; createdAt: string; lastActivity: string; expiresAt: string }; totpEnabled: boolean }
 
 /** 所有请求统一解包；业务判断只使用 error.code。 */
 export async function api<T>(path: string, method = 'GET', body?: unknown, token?: string): Promise<T> {

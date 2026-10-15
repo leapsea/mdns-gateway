@@ -109,7 +109,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/v1/auth/2fa/verify", s.rebindVerify)
 	mux.HandleFunc("POST /api/v1/auth/logout", s.secure(s.logout))
 	mux.HandleFunc("GET /api/v1/auth/me", s.secure(s.me))
-	mux.HandleFunc("GET /api/v1/sites", s.secure(s.listSites))
+	// Dashboard 公开只读数据；配置内容、账户与所有写操作仍需有效 Session。
+	mux.HandleFunc("GET /api/v1/sites", s.listSites)
 	mux.HandleFunc("POST /api/v1/sites", s.secure(s.saveSite))
 	mux.HandleFunc("POST /api/v1/sites/config/preview", s.secure(s.previewConfig))
 	mux.HandleFunc("GET /api/v1/sites/{id}", s.secure(s.getSite))
@@ -119,16 +120,16 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("PUT /api/v1/sites/{id}/config", s.secure(s.putConfig))
 	mux.HandleFunc("POST /api/v1/sites/{id}/config/validate", s.secure(s.validateConfig))
 	mux.HandleFunc("POST /api/v1/sites/{id}/config/reset", s.secure(s.resetConfig))
-	mux.HandleFunc("GET /api/v1/system/status", s.secure(s.status))
-	mux.HandleFunc("GET /api/v1/system/mdns", s.secure(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /api/v1/system/status", s.status)
+	mux.HandleFunc("GET /api/v1/system/mdns", func(w http.ResponseWriter, r *http.Request) {
 		respond(w, 200, map[string]any{"status": s.MDNS.Status(), "conflicts": s.MDNS.Conflicts()}, nil)
-	}))
-	mux.HandleFunc("GET /api/v1/system/openresty", s.secure(func(w http.ResponseWriter, r *http.Request) {
+	})
+	mux.HandleFunc("GET /api/v1/system/openresty", func(w http.ResponseWriter, r *http.Request) {
 		respond(w, 200, map[string]string{"activeVersion": s.Proxy.ActiveVersion(), "runtime": s.Proxy.RuntimeStatus(), "applyStatus": s.Proxy.ApplyStatus()}, nil)
-	}))
-	mux.HandleFunc("GET /api/v1/system/version", s.secure(func(w http.ResponseWriter, r *http.Request) {
+	})
+	mux.HandleFunc("GET /api/v1/system/version", func(w http.ResponseWriter, r *http.Request) {
 		respond(w, 200, map[string]string{"version": "v0.1.0"}, nil)
-	}))
+	})
 	if s.UI != nil {
 		mux.Handle("/", s.UI)
 	}
@@ -310,6 +311,13 @@ func (s *Server) listSites(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		failure(w, err)
 		return
+	}
+	// 自定义配置可能包含上游凭据，只通过鉴权后的站点详情接口读取。
+	for i := range list {
+		list[i].CustomConfig = ""
+	}
+	if list == nil {
+		list = []sites.Site{}
 	}
 	respond(w, 200, list, nil)
 }

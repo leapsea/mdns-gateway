@@ -38,7 +38,9 @@ docker compose -f deploy/compose.yml up --build -d
 curl http://127.0.0.1:8082/health
 ```
 
-打开 `http://<网关IP>:8082/` 初始化管理员。系统会显示 TOTP 二维码和只显示一次的恢复码。`master.key` 与数据库一起备份；丢失主密钥后，现有 TOTP 密文无法恢复。请限制 `/data` 的访问权限。
+打开 `http://<网关IP>:8082/` 默认进入 Dashboard。未登录可浏览站点和运行状态；点击右上角“登录”进入认证，首次使用会在此初始化管理员。登录后右上角显示账户信息，并开放添加、编辑和删除；退出或 Session 失效后继续只读浏览。公开站点列表不包含自定义配置内容，所有写操作及完整配置读取均由后端校验 Session。
+
+首次绑定会显示 TOTP 二维码和只显示一次的恢复码。`master.key` 与数据库一起备份；丢失主密钥后，现有 TOTP 密文无法恢复。请限制 `/data` 的访问权限。
 
 ### Ubuntu Docker 部署与 mDNS 排查
 

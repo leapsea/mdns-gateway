@@ -4,7 +4,7 @@
 
 业务实体是 `User`、`Session`、`Site`、`Desired State`、`Candidate` 和 `Active Release`。单网关服务家庭、实验室或小型办公局域网；第一版假设站点数量为几十个、后台并发为个位数，配置变更可以等待最多数秒的 mDNS 探测与 OpenResty 校验。配置变更串行执行，普通代理请求不经过 Go 后端。
 
-安全边界是拥有网关主机和 OpenResty 配置的管理员。Web API 以随机内存 Session 鉴权，TOTP 密文和恢复码摘要保存在 SQLite。HTTP 明文和 `/data` 主密钥需要部署在可信局域网及受限主机上。
+安全边界是拥有网关主机和 OpenResty 配置的管理员。Dashboard 的站点元数据与运行状态允许访客读取；写操作、账户信息和完整站点配置通过随机内存 Session 鉴权。公开列表剔除自定义配置内容，编辑时由鉴权详情接口加载。TOTP 密文和恢复码摘要保存在 SQLite。HTTP 明文和 `/data` 主密钥需要部署在可信局域网及受限主机上。
 
 ## 2. 技术选型与分层
 
