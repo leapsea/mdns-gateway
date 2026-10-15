@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import QRCode from 'qrcode'
 import { api, type Site } from './api'
 import { useGatewayStore } from './store'
+import SiteCard from './components/SiteCard.vue'
 
 /** 一个页面承载首次绑定、恢复和站点表单，状态转换由 API 返回驱动。 */
 const store = useGatewayStore()
@@ -211,11 +212,7 @@ function logout() { if (busy.value) return; run(async () => { try { await api('/
         <div v-if="!store.status && busy" class="empty" role="status">正在加载站点…</div>
         <div v-else-if="!store.sites.length" class="empty">还没有站点。{{ store.isAuthenticated ? '点击“添加站点”开始连接内网服务。' : '登录后可以添加站点。' }}</div>
         <div class="grid">
-          <article v-for="site in store.sites" :key="site.id" class="site-card" :class="{ 'is-off': !site.enabled, 'has-conflict': store.mdnsConflicts[site.domain] }">
-            <div class="site-top"><div class="site-icon" aria-hidden="true">↗</div><span class="badge" :class="{ off: !site.enabled, conflict: site.enabled && store.mdnsConflicts[site.domain] }">{{ !site.enabled ? '已停用' : store.mdnsConflicts[site.domain] ? 'mDNS 冲突' : '运行中' }}</span></div>
-            <div class="site-content"><span class="site-name">{{ site.name }}</span><h2>{{ site.domain }}</h2><p class="site-target"><span>{{ site.protocol === 'SSH' ? `网关端口 ${site.listenPort} →` : '目标地址' }}</span><code>{{ site.targetHost }}:{{ site.targetPort }}</code></p></div>
-            <div class="site-footer"><span class="site-meta">{{ site.protocol === 'WEBSOCKET' ? 'WebSocket' : site.protocol }} · {{ site.configMode === 'CUSTOM' ? '自定义配置' : '自动配置' }}</span><div v-if="store.isAuthenticated" class="site-actions"><button type="button" :disabled="busy" @click="edit(site)">编辑</button><button type="button" class="danger" :disabled="busy" @click="remove(site)">删除</button></div></div>
-          </article>
+          <SiteCard v-for="site in store.sites" :key="site.id" :site="site" :conflict="store.mdnsConflicts[site.domain]" :editable="store.isAuthenticated" :busy="busy" @edit="edit" @remove="remove" />
         </div>
       </template>
       <section v-else class="system-grid" aria-label="系统运行状态">
